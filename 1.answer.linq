@@ -8,7 +8,17 @@ void Main()
 		.ToList();
 
 	Part1(measurements);
+	
+	// Hackz0r part 1
+	measurements.Where((e, i) => i > 0 && measurements[i-1] < e).Count().Dump();
+	
+	
 	Part2(measurements);
+	
+	// H4Xzer part 2
+	measurements.Take(measurements.Count - 2)
+		.Where((e, i) => i > 0 && Enumerable.Range(i-1, 3).Sum(j =>  measurements[j]) < Enumerable.Range(i, 3).Sum(j =>  measurements[j]))
+		.Count().Dump();
 }
 
 void Part1(List<int> measurements)
