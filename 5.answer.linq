@@ -2,62 +2,118 @@
 
 void Main()
 {
-	var file = Path.Combine(Path.GetDirectoryName(Util.CurrentQueryPath), "5.sample.txt");
+	var file = Path.Combine(Path.GetDirectoryName(Util.CurrentQueryPath), "5.input.txt");
 	var input = File.ReadAllLines(file);
 	
-	input.Dump();
+	var lines = ParseInput(input);
+		
+	var maxX = lines.SelectMany(l => l.Points).Select(p => p.X).Max() + 1;
+	var maxY = lines.SelectMany(l => l.Points).Select(p => p.Y).Max() + 1;
 	
-	var lines = ParseInput(input).Dump();
-	
-	var maxX = lines.SelectMany(l => l.Points).Select(p => p.X).Max();
-	var maxY = lines.SelectMany(l => l.Points).Select(p => p.Y).Max();
-	
-	var seabed = new int[maxX, maxY];
-	seabed.Dump();
-	
-	for (var x = 0; x < maxX; x++)
-	for (var y = 0; y < maxY; y++)
+	// --- Part One ---
+	// Note: Java-drawing-like coordinates [y,x] makes linqpad Dump match sample output.
+	var seabed1 = new int[maxY, maxX];
+	foreach (var line in lines.Where(l => l.Simple))
 	{
-		foreach (var line in lines.Where(l => l.Simple))
-		{
-			if (line.Intersects(new Point(x, y)))
-			{
-				seabed[x,y]++;
-			}
-		}	
+		line.Draw(ref seabed1);
+	}
+
+	//Util.OnDemand("Click to draw seabed...", () => seabed1).Dump("Seabed One");
+	Bitmap(seabed1).Dump("Seabed One");
+
+
+	var overlaps1 = 0;
+	foreach (var p in seabed1)
+	{
+		if (p >= 2) overlaps1++;
 	}
 	
-	seabed.Dump();
+	overlaps1.Dump("Overlaps in Seabed One");
+	//Debug.Assert(overlaps1 == 5);
+
+
+	// --- Part Two ---
+	var seabed2 = new int[maxY, maxX];
+	foreach (var line in lines)
+	{
+		line.Draw(ref seabed2);
+	}
+
+	//Util.OnDemand("Click to draw seabed...", () => seabed2).Dump("Seabed Two");
+	Bitmap(seabed2).Dump("Seabed Two");
+
+	var overlaps2 = 0;
+	foreach (var p in seabed2)
+	{
+		if (p >= 2) overlaps2++;
+	}
+
+	overlaps2.Dump("Overlaps in Seabed Two");
+	//Debug.Assert(overlaps2 == 12);
+
 	
+
+	
+
+
 }
+
+static System.Drawing.Bitmap Bitmap(int[,] seabed)
+{
+	var max = 0;
+	foreach (var p in seabed)
+	{
+		if (p > max) max = p;	
+	}
+	var scale = 255 / max;
+	
+	var maxY = seabed.GetLength(0);
+	var maxX = seabed.GetLength(1);
+	
+	var bitmap = new System.Drawing.Bitmap(maxX, maxY, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+	for (var y = 0; y < maxY; y++)
+	for (var x = 0; x < maxX; x++)
+	{
+		var green = seabed[y, x] * scale;
+		var color = System.Drawing.Color.FromArgb(0, green, 0);
+		bitmap.SetPixel(x, y, color);
+	}
+
+	return bitmap;
+}
+
+
 
 record Line(Point From, Point To)
 {
 	public IEnumerable<Point> Points => new[] { From, To };
-	
+
 	public bool Simple => From.X == To.X || From.Y == To.Y;
-	
-	public bool Intersects(Point p)
+
+	public void Draw(ref int[,] seabed)
 	{
-		Debug.Assert(Simple);
-
-//		if (p.X == From.X && p.X == To.X)
-//		{
-//			if (p.Y >= From.Y && p.Y <= To.Y)
-//			{
-//				return true;
-//			}
-//		}
-//
-//		if (p.Y == From.Y && p.Y == To.Y)
-//		{
-//			if (p.X >= From.X && p.X <= To.X)
-//			{
-//				return true;
-//			}
-//		}
-
-		return false;
+		var dist = DiagonalDistance();
+		for (var step = 0; step <= dist; step++)
+		{
+			var travel = dist == 0 ? 0.0 : step / dist;
+			var x = (int)Math.Round(LinerInterpolate(From.X, To.X, travel));
+			var y = (int)Math.Round(LinerInterpolate(From.Y, To.Y, travel));
+			
+			seabed[y,x]++;
+		}
+	}
+	
+	static double LinerInterpolate(int start, int end, double t)
+	{
+		return start + t * (end - start);
+	}
+	
+	private double DiagonalDistance()
+	{
+		var dx = From.X - To.X;
+		var dy = From.Y - To.Y;
+		
+		return Math.Max(Math.Abs(dx), Math.Abs(dy));
 	}
 };
 
