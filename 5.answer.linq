@@ -18,8 +18,8 @@ void Main()
 		line.Draw(ref seabed1);
 	}
 
-	//Util.OnDemand("Click to draw seabed...", () => seabed1).Dump("Seabed One");
-	Bitmap(seabed1).Dump("Seabed One");
+	Util.OnDemand("Click for Seabed data", () => seabed1).Dump();
+	Bitmap(seabed1).Dump(Util.ScaleMode.ResizeTo(500), "Seabed One");
 
 
 	var overlaps1 = 0;
@@ -39,8 +39,8 @@ void Main()
 		line.Draw(ref seabed2);
 	}
 
-	//Util.OnDemand("Click to draw seabed...", () => seabed2).Dump("Seabed Two");
-	Bitmap(seabed2).Dump("Seabed Two");
+	Util.OnDemand("Click for Seabed data", () => seabed2).Dump();
+	Bitmap(seabed2).Dump(Util.ScaleMode.ResizeTo(500), "Seabed Two");
 
 	var overlaps2 = 0;
 	foreach (var p in seabed2)
@@ -50,12 +50,6 @@ void Main()
 
 	overlaps2.Dump("Overlaps in Seabed Two");
 	//Debug.Assert(overlaps2 == 12);
-
-	
-
-	
-
-
 }
 
 static System.Drawing.Bitmap Bitmap(int[,] seabed)
@@ -70,7 +64,7 @@ static System.Drawing.Bitmap Bitmap(int[,] seabed)
 	var maxY = seabed.GetLength(0);
 	var maxX = seabed.GetLength(1);
 	
-	var bitmap = new System.Drawing.Bitmap(maxX, maxY, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+	var bitmap = new System.Drawing.Bitmap(maxX, maxY);
 	for (var y = 0; y < maxY; y++)
 	for (var x = 0; x < maxX; x++)
 	{
@@ -81,7 +75,6 @@ static System.Drawing.Bitmap Bitmap(int[,] seabed)
 
 	return bitmap;
 }
-
 
 
 record Line(Point From, Point To)
