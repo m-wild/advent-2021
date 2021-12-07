@@ -2,57 +2,52 @@
 
 void Main()
 {
-	var file = Path.Combine(Path.GetDirectoryName(Util.CurrentQueryPath), "6.sample.txt");
+	var file = Path.Combine(Path.GetDirectoryName(Util.CurrentQueryPath), "6.input.txt");
 	var input = File.ReadAllLines(file);
 
 	Debug.Assert(input.Length == 1);
+	var fish = input[0].Split(',').Select(x => int.Parse(x)).ToList(); 
 
 	// --- Part One ---	
-	//ModelPopulationGrowth(input, 80);
-	var totalPopulaton = ModelPopulationGrowth2(input, days: 80);
-	Debug.Assert(totalPopulaton.Dump() == 5934);
-	//Debug.Assert(totalPopulaton.Dump() == 352872);
+	var totalPopulaton = ModelPopulationGrowth(fish, days: 80);
+	//Debug.Assert(totalPopulaton.Dump() == 5934);
+	Debug.Assert(totalPopulaton.Dump() == 352872);
 
 
-	//// --- Part Two ---
-	//var totalPopulaton2 = ModelPopulationGrowth2(input, days: 256);
+	// --- Part Two ---
+	var totalPopulaton2 = ModelPopulationGrowth(fish, days: 256);
 	//Debug.Assert(totalPopulaton2.Dump() == 26984457539);
-	////Debug.Assert(totalPopulaton2.Dump() == );
+	Debug.Assert(totalPopulaton2.Dump() == 1604361182149);
 }
 
-double ModelPopulationGrowth2(string[] input, int days)
+long ModelPopulationGrowth(List<int> fish, int days)
 {
-	var fish = input[0].Split(',').Select(x => int.Parse(x)).ToList();
-
-	var pop = fish.Count ^ (days / 7);
-
-		
-		
-	
-	return pop;	
-}
-
-
-long ModelPopulationGrowth(string[] input, int days)
-{
-	var fish = input[0].Split(',').Select(x => int.Parse(x)).ToList();
-	
-	for (var d = 1; d <= days; d++)
+	checked
 	{
-		var fishCountStartOfDay = fish.Count;
-		for (var f = 0; f < fishCountStartOfDay; f++)
+		var shoal = Enumerable.Range(0, 9).ToDictionary(i => i, _ => 0L);
+
+		foreach (var f in fish)
 		{
-			fish[f]--;
-			if (fish[f] == -1)
-			{
-				fish[f] = 6;
-				fish.Add(8);
-			}
+			shoal[f]++;
 		}
 
-		//Util.RawHtml($"<pre>Population size {fish.Count:0000000000} after {d:000} days</pre>").Dump();
+		for (int d = 0; d < days; d++)
+		{
+			var newShoal = Enumerable.Range(0, 9).ToDictionary(i => i, _ => 0L);
+
+			foreach (var (key, value) in shoal)
+			{
+				if (key > 0)
+				{
+					newShoal[key - 1] = shoal[key]; // all non-zero fish move 1 day closer to spawning
+				}
+			}
+
+			newShoal[6] += shoal[0]; // all spawning fish return to 6
+			newShoal[8] = shoal[0]; // all spawning fish spawn a new fish at day 8
+			shoal = newShoal;
+		}
+
+		return shoal.Sum(s => s.Value);
 	}
-	
-	var totalPopulaton = fish.LongCount();
-	return totalPopulaton;
 }
