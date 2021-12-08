@@ -49,13 +49,13 @@ void Main()
 	
 	var possibleSegmentMap = new Dictionary<char, HashSet<char>>
 	{
-		['a'] = new(),
-		['b'] = new(),
-		['c'] = new(),
-		['d'] = new(),
-		['e'] = new(),
-		['f'] = new(),
-		['g'] = new(),
+		['a'] = new("abcdefg"),
+		['b'] = new("abcdefg"),
+		['c'] = new("abcdefg"),
+		['d'] = new("abcdefg"),
+		['e'] = new("abcdefg"),
+		['f'] = new("abcdefg"),
+		['g'] = new("abcdefg"),
 	};
 
 
@@ -78,12 +78,18 @@ void Main()
 			
 			foreach (var position in digitPositions)
 			{
-				possibleSegmentMap[position].Merge(item.Pattern);
+				// WTF am I doing...
+				possibleSegmentMap[position].RemoveMany(item.Pattern);
 			}
 		}
 	}
 	
-	possibleSegmentMap.Dump();
+	foreach (var kv in possibleSegmentMap)
+	{
+		possibleSegmentMap[kv.Key] = new (kv.Value.OrderBy(v => v));
+	}
+	
+	possibleSegmentMap.OrderBy(kv => kv.Value.Count).Dump();
 
 }
 
@@ -121,6 +127,14 @@ static class Extensions
 			{
 				set.Add(v);
 			}
+		}
+	}
+	
+	public static void RemoveMany<T>(this ISet<T> set, IEnumerable<T> values)
+	{
+		foreach (var v in values)
+		{
+			set.Remove(v);
 		}
 	}
 }
